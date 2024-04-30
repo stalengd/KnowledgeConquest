@@ -14,8 +14,18 @@ namespace KnowledgeConquest.Server.Models
             var right = 0;
             for (int i = 0; i < Answers.Count; i++)
             {
-                if (answerNumbers.Contains(Answers[i].Index))
-                    right++;
+                var answer = Answers[i];
+                if (answerNumbers.Contains(answer.Index))
+                {
+                    if (answer.IsRight)
+                    {
+                        right++;
+                    }
+                    else
+                    {
+                        right--;
+                    }
+                }
             }
             return right;
         }
