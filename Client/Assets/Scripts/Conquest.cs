@@ -1,6 +1,7 @@
 using UnityEngine;
 using Zenject;
 using KnowledgeConquest.Client.UI;
+using KnowledgeConquest.Client.Connection;
 
 namespace KnowledgeConquest.Client
 {
@@ -9,17 +10,19 @@ namespace KnowledgeConquest.Client
         private WorldMap _worldMap;
         private QuestionPanel _questionPanel;
         private QuestionsRepository _questionsRepository;
+        private MapApi _mapApi;
 
         private QuestionProcess _questionProcess;
         private Vector2Int _selectedCell;
 
 
         [Inject]
-        public void Construct(WorldMap worldMap, QuestionPanel questionsPanel, QuestionsRepository questionsRepository)
+        public void Construct(WorldMap worldMap, QuestionPanel questionsPanel, QuestionsRepository questionsRepository, MapApi mapApi)
         {
             _worldMap = worldMap;
             _questionPanel = questionsPanel;
             _questionsRepository = questionsRepository;
+            _mapApi = mapApi;
         }
 
         private void Update()
@@ -35,15 +38,15 @@ namespace KnowledgeConquest.Client
             var selectedCell = _worldMap.TryClickAvailiableCell();
             if (selectedCell.HasValue)
             {
-                BeginQuestion(selectedCell.Value);
+                BeginQuestionAsync(selectedCell.Value);
             }
         }
 
-        private void BeginQuestion(Vector2Int cell)
+        private async void BeginQuestionAsync(Vector2Int cell)
         {
             _selectedCell = cell;
-            var question = _questionsRepository.GetQuestion(_selectedCell);
-            _questionProcess = new QuestionProcess(question);
+            var question = await _questionsRepository.GetQuestionAsync(_selectedCell);
+            _questionProcess = new QuestionProcess(cell, question, _mapApi);
             _questionProcess.OnAnswered += OnQuestionAnswered;
             _questionPanel.Open(_questionProcess);
         }

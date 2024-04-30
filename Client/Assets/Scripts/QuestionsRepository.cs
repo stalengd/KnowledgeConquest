@@ -1,25 +1,22 @@
+using System.Threading.Tasks;
 using UnityEngine;
+using KnowledgeConquest.Client.Models;
+using KnowledgeConquest.Client.Connection;
 
 namespace KnowledgeConquest.Client
 {
     public class QuestionsRepository 
     {
-        private readonly Question _dummyQuestion = new()
-        {
-            Text = "Test Question",
-            Answers = new[]
-            {
-                "Wrong",
-                "Right",
-                "Wrong",
-                "Wrong",
-            },
-            CorrectAnswer = 1
-        };
+        private readonly MapApi _mapApi;
 
-        public Question GetQuestion(Vector2Int cell)
+        public QuestionsRepository(MapApi mapApi)
         {
-            return _dummyQuestion;
+            _mapApi = mapApi;
+        }
+
+        public Task<Question> GetQuestionAsync(Vector2Int cell)
+        {
+            return _mapApi.GetMapCellQuestionAsync(cell);
         }
     }
 }

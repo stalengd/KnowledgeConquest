@@ -1,15 +1,25 @@
 ﻿using System.Threading.Tasks;
 using System.IO;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using KnowledgeConquest.Client.Extensions;
+using KnowledgeConquest.Client.Utils;
 
 namespace KnowledgeConquest.Client.Connection
 {
-    public sealed class ApiConnection
+    public interface IApiConnection
+    {
+        Task<bool> IsServerAvailiableAsync();
+        Task<T> GetAsync<T>(UrlBuilder url);
+        Task<UnityWebRequest> GetAsync(string relativePath);
+        Task<UnityWebRequest> GetAsync(UrlBuilder url);
+        Task<UnityWebRequest> PostJsonAsync(string relativePath, JToken jsonToken);
+        Task<UnityWebRequest> PostJsonAsync(UrlBuilder url, JToken jsonToken);
+    }
+
+    public sealed class ApiConnection : IApiConnection
     {
         private readonly IConnectionConfig _connectionConfig;
 
@@ -18,67 +28,46 @@ namespace KnowledgeConquest.Client.Connection
             _connectionConfig = connectionConfig;
         }
 
-        public async ValueTask<bool> IsServerAvailiableAsync()
+        public async Task<bool> IsServerAvailiableAsync()
         {
             using var request = UnityWebRequest.Head(_connectionConfig.BaseUrl);
             await request.SendWebRequest();
-            Debug.Log($"Server availiability: {request.result}");
             return request.result != UnityWebRequest.Result.ConnectionError;
         }
 
-        public async ValueTask<bool> RegisterAsync()
+        public async Task<T> GetAsync<T>(UrlBuilder url)
         {
-            var data = new JObject() 
-            {
-                ["username"] = _connectionConfig.Username,
-                ["password"] = _connectionConfig.Password,
-            };
-            using var request = PostJson("Account/Register", data);
-            await request.SendWebRequest();
+            using var request = await GetAsync(url);
             if (request.result != UnityWebRequest.Result.Success)
             {
-                LogRequestError(request);
-                return false;
+                ConnectionUtils.LogRequestError(request);
+                return default;
             }
-            Debug.Log(request.downloadHandler.text);
-            return true;
+            return JObject.Parse(request.downloadHandler.text).ToObject<T>();
         }
 
-        public async ValueTask<bool> LoginAsync()
+        public Task<UnityWebRequest> GetAsync(string relativePath)
         {
-            var data = new JObject() 
-            {
-                ["username"] = _connectionConfig.Username,
-                ["password"] = _connectionConfig.Password,
-                ["remember"] = true,
-            };
-            using var request = PostJson("Account/Login", data);
+            return GetAsync(UrlBuilder.FromRelative(relativePath));
+        }
+
+        public async Task<UnityWebRequest> GetAsync(UrlBuilder url)
+        {
+            url.BasePath ??= _connectionConfig.BaseUrl;
+            var request = UnityWebRequest.Get(url.ToString());
             await request.SendWebRequest();
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                LogRequestError(request);
-                return false;
-            }
-            Debug.Log(request.downloadHandler.text);
-            return true;
+            return request;
         }
 
-
-        private void LogRequestError(UnityWebRequest request)
+        public Task<UnityWebRequest> PostJsonAsync(string relativePath, JToken jsonToken)
         {
-            Debug.LogError($"{request.url}: {request.result}, {request.responseCode}\n{request.downloadHandler.text}");
+            return PostJsonAsync(UrlBuilder.FromRelative(relativePath), jsonToken);
         }
 
-        private UnityWebRequest Get(string relativePath)
+        public async Task<UnityWebRequest> PostJsonAsync(UrlBuilder url, JToken jsonToken)
         {
-            return UnityWebRequest.Get(new System.Uri(_connectionConfig.BaseUrl, relativePath));
-        }
-
-        private UnityWebRequest PostJson(string relativePath, JToken jsonToken)
-        {
-            var request = new UnityWebRequest(new System.Uri(_connectionConfig.BaseUrl, relativePath), UnityWebRequest.kHttpVerbPOST);
-            jsonToken.CreateReader();
-
+            url.BasePath ??= _connectionConfig.BaseUrl;
+            var request = new UnityWebRequest(url.ToString(), UnityWebRequest.kHttpVerbPOST);
             using (var stream = new MemoryStream())
             {
                 using (var streamWriter = new StreamWriter(stream))
@@ -87,18 +76,24 @@ namespace KnowledgeConquest.Client.Connection
                     jsonToken.WriteTo(jsonWriter);
                 }
                 var buffer = stream.GetBuffer();
-                var nativeBuffer = new NativeArray<byte>(buffer, Allocator.Temp);
                 var len = System.Array.IndexOf<byte>(buffer, 0);
                 if (len == -1)
                 {
                     len = buffer.Length;
                 }
-                var uploadHandler = new UploadHandlerRaw(nativeBuffer.GetSubArray(0, len), true);
+                var dataToSend = new byte[len];
+                System.Array.Copy(buffer, dataToSend, len);
+                var uploadHandler = new UploadHandlerRaw(dataToSend);
                 request.uploadHandler = uploadHandler;
             }
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
-
+            await request.SendWebRequest();
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                ConnectionUtils.LogRequestError(request);
+                return default;
+            }
             return request;
         }
     }

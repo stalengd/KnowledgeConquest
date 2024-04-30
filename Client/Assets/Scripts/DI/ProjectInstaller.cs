@@ -10,14 +10,17 @@ namespace KnowledgeConquest.Client.DI
 
         public override void InstallBindings()
         {
-            BindAPIConnection();
+            BindApiConnection();
             BindConnectionConfig();
+            BindMapApi();
+            BindAccountApi();
         }
 
-        private void BindAPIConnection()
+        private void BindApiConnection()
         {
             Container
-                .Bind<ApiConnection>()
+                .Bind<IApiConnection>()
+                .To<ApiConnection>()
                 .AsSingle();
         }
 
@@ -27,6 +30,20 @@ namespace KnowledgeConquest.Client.DI
                 .Bind<IConnectionConfig>()
                 .To<ConnectionConfig>()
                 .FromInstance(_connectionConfig);
+        }
+
+        private void BindAccountApi()
+        {
+            Container
+                .Bind<AccountApi>()
+                .AsSingle();
+        }
+
+        private void BindMapApi()
+        {
+            Container
+                .Bind<MapApi>()
+                .AsSingle();
         }
     }
 }

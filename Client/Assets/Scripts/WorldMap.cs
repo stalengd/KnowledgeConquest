@@ -34,13 +34,16 @@ namespace KnowledgeConquest.Client
             return mouseCell;
         }
 
-        public void SetCellOwned(Vector2Int cell)
+        public void SetCellOwned(Vector2Int cell, bool redraw = true)
         {
-            _ownedCells.Add(cell);
-            Draw();
+            var isAdded = _ownedCells.Add(cell);
+            if (redraw && isAdded)
+            {
+                Draw();
+            }
         }
 
-        private void Draw()
+        public void Draw()
         {
             _tilemap.ClearAllTiles();
             var pos = new Vector2Int(_visibleField.xMin, _visibleField.yMax);

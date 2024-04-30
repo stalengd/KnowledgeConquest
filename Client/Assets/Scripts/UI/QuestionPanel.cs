@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,6 +6,7 @@ namespace KnowledgeConquest.Client.UI
 {
     public class QuestionPanel : MonoBehaviour
     {
+        [SerializeField] private TMP_Text _titleText;
         [SerializeField] private ListHelper<QuestionAnswerButton> _answers;
         [SerializeField] private Button _submitButton;
         private QuestionProcess _process;
@@ -18,12 +20,13 @@ namespace KnowledgeConquest.Client.UI
         {
             _process = questionProcess;
             _answers.Clear();
-            for (int i = 0; i < _process.Question.Answers.Length; i++)
+            for (int i = 0; i < _process.Question.Answers.Count; i++)
             {
                 var e = _answers.CreateElement();
-                e.Render(i, _process.Question.Answers[i], this);
+                e.Render(i, _process.Question.Answers[i].Title, this);
                 e.SetSelected(_process.SelectedAnswer == i);
             }
+            _titleText.text = _process.Question.Title;
             PlayShowAnimation();
         }
 
@@ -42,10 +45,14 @@ namespace KnowledgeConquest.Client.UI
             _answers[index].SetSelected(true);
         }
 
-        private void SubmitButtonPressed()
+        private async void SubmitButtonPressed()
         {
+            if (_process.SelectedAnswer < 0)
+            {
+                return;
+            }
+            await _process.EvaluateAsync();
             Close();
-            _process.Evaluate();
         }
 
         private void PlayShowAnimation()
