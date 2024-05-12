@@ -8,6 +8,7 @@ namespace KnowledgeConquest.Client
     public class Conquest : MonoBehaviour
     {
         private WorldMap _worldMap;
+        private WorldMapRenderer _worldMapRenderer;
         private QuestionPanel _questionPanel;
         private QuestionsRepository _questionsRepository;
         private MapApi _mapApi;
@@ -17,9 +18,10 @@ namespace KnowledgeConquest.Client
 
 
         [Inject]
-        public void Construct(WorldMap worldMap, QuestionPanel questionsPanel, QuestionsRepository questionsRepository, MapApi mapApi)
+        public void Construct(WorldMap worldMap, WorldMapRenderer worldMapRenderer, QuestionPanel questionsPanel, QuestionsRepository questionsRepository, MapApi mapApi)
         {
             _worldMap = worldMap;
+            _worldMapRenderer = worldMapRenderer;
             _questionPanel = questionsPanel;
             _questionsRepository = questionsRepository;
             _mapApi = mapApi;
@@ -35,7 +37,7 @@ namespace KnowledgeConquest.Client
 
         private void UpdateOnMap()
         {
-            var selectedCell = _worldMap.TryClickAvailiableCell();
+            var selectedCell = _worldMapRenderer.TryClickAvailiableCell();
             if (selectedCell.HasValue)
             {
                 BeginQuestionAsync(selectedCell.Value);

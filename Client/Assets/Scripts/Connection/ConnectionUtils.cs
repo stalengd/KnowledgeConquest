@@ -9,6 +9,5 @@ namespace KnowledgeConquest.Client.Connection
         {
             Debug.LogError($"{request.url}: {request.result}, {request.responseCode}\n{request.downloadHandler.text}");
         }
-
     }
 }

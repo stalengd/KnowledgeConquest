@@ -92,7 +92,7 @@ namespace KnowledgeConquest.Client.Connection
             if (request.result != UnityWebRequest.Result.Success)
             {
                 ConnectionUtils.LogRequestError(request);
-                return default;
+                return request;
             }
             return request;
         }

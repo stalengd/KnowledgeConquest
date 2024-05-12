@@ -1,40 +1,39 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace KnowledgeConquest.Client.Connection
 {
     public sealed class AccountApi
     {
-        private readonly IConnectionConfig _connectionConfig;
         private readonly IApiConnection _apiConnection;
 
-        public AccountApi(IConnectionConfig connectionConfig, IApiConnection apiConnection)
+        public AccountApi(IApiConnection apiConnection)
         {
-            _connectionConfig = connectionConfig;
             _apiConnection = apiConnection;
         }
 
-        public async Task<bool> RegisterAsync()
+        public async Task<List<Validation.Error>> RegisterAsync(string username, string password)
         {
             var data = new JObject() 
             {
-                ["username"] = _connectionConfig.Username,
-                ["password"] = _connectionConfig.Password,
+                ["username"] = username,
+                ["password"] = password,
             };
             using var request = await _apiConnection.PostJsonAsync("Account/Register", data);
-            return true;
+            return Validation.ParseErrors(JToken.Parse(request.downloadHandler.text));
         }
 
-        public async Task<bool> LoginAsync()
+        public async Task<bool> LoginAsync(string username, string password)
         {
             var data = new JObject() 
             {
-                ["username"] = _connectionConfig.Username,
-                ["password"] = _connectionConfig.Password,
+                ["username"] = username,
+                ["password"] = password,
                 ["remember"] = true,
             };
             using var request = await _apiConnection.PostJsonAsync("Account/Login", data);
-            return true;
+            return request.result == UnityEngine.Networking.UnityWebRequest.Result.Success;
         }
     }
 }

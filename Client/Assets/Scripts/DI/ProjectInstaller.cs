@@ -14,6 +14,8 @@ namespace KnowledgeConquest.Client.DI
             BindConnectionConfig();
             BindMapApi();
             BindAccountApi();
+
+            BindWorldMap();
         }
 
         private void BindApiConnection()
@@ -43,6 +45,13 @@ namespace KnowledgeConquest.Client.DI
         {
             Container
                 .Bind<MapApi>()
+                .AsSingle();
+        }
+
+        private void BindWorldMap()
+        {
+            Container
+                .Bind<WorldMap>()
                 .AsSingle();
         }
     }

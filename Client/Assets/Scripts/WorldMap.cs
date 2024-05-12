@@ -1,73 +1,32 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace KnowledgeConquest.Client
 {
-    public class WorldMap : MonoBehaviour
+    public sealed class WorldMap 
     {
-        [SerializeField] private Grid _grid;
-        [SerializeField] private Tilemap _tilemap;
-        [SerializeField] private TileBase _ownedTile;
-        [SerializeField] private TileBase _freeTile;
-        [SerializeField] private TileBase _availableTile;
-        [SerializeField] private RectInt _visibleField;
-        private HashSet<Vector2Int> _ownedCells;
+        public event System.Action<Vector2Int> CellChanged;
 
-        private void Start()
+        private readonly HashSet<Vector2Int> _ownedCells = new()
         {
-            _ownedCells = new HashSet<Vector2Int>()
-            {
-                new Vector2Int(0, 0),
-            };
-            Draw();
-        }
+            new Vector2Int(0, 0),
+        };
 
-        public Vector2Int? TryClickAvailiableCell()
-        {
-            if (!Input.GetMouseButtonDown(0)) return null;
-            var mouseCell = WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            if (!_visibleField.Contains(mouseCell)) return null;
-            if (_ownedCells.Contains(mouseCell)) return null;
-            if (!IsNeighbourOwned(mouseCell)) return null;
-
-            return mouseCell;
-        }
-
-        public void SetCellOwned(Vector2Int cell, bool redraw = true)
+        public void SetCellOwned(Vector2Int cell, bool notify = true)
         {
             var isAdded = _ownedCells.Add(cell);
-            if (redraw && isAdded)
+            if (notify && isAdded)
             {
-                Draw();
+                CellChanged?.Invoke(cell);
             }
         }
 
-        public void Draw()
+        public bool IsCellOwned(Vector2Int cell)
         {
-            _tilemap.ClearAllTiles();
-            var pos = new Vector2Int(_visibleField.xMin, _visibleField.yMax);
-            for (; pos.x < _visibleField.xMax; pos.x++)
-            {
-                for (; pos.y < _visibleField.yMax; pos.y++)
-                {
-                    TileBase tile = _freeTile;
-                    if (_ownedCells.Contains(pos))
-                        tile = _ownedTile;
-                    else if (IsNeighbourOwned(pos))
-                        tile = _availableTile;
-                    _tilemap.SetTile((Vector3Int)pos, tile);
-                }
-                pos.y = _visibleField.yMin;
-            }
+            return _ownedCells.Contains(cell);
         }
 
-        private Vector2Int WorldToCell(Vector2 worldPos)
-        {
-            return (Vector2Int)_grid.WorldToCell(worldPos);
-        }
-
-        private bool IsNeighbourOwned(Vector2Int cell)
+        public bool IsNeighbourOwned(Vector2Int cell)
         {
             if (cell.y % 2 == 0) 
             {
