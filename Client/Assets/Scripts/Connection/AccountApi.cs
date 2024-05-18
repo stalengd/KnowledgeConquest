@@ -21,6 +21,10 @@ namespace KnowledgeConquest.Client.Connection
                 ["password"] = password,
             };
             using var request = await _apiConnection.PostJsonAsync("Account/Register", data);
+            if (request.responseCode == 200)
+            {
+                return new List<Validation.Error>();
+            }
             return Validation.ParseErrors(JToken.Parse(request.downloadHandler.text));
         }
 
