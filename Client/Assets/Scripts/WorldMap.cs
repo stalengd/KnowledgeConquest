@@ -1,51 +1,26 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace KnowledgeConquest.Client
 {
     public sealed class WorldMap 
     {
-        public event System.Action<Vector2Int> CellChanged;
+        public UserMap PrimaryMap { get; set; } 
+        public IEnumerable<UserMap> UserMaps => _userMaps.Values;
 
-        private readonly HashSet<Vector2Int> _ownedCells = new()
-        {
-            new Vector2Int(0, 0),
-        };
+        public event System.Action<UserMap> UserMapAdded;
 
-        public void SetCellOwned(Vector2Int cell, bool notify = true)
+
+        private readonly Dictionary<User, UserMap> _userMaps = new();
+
+        public UserMap GetOrCreateUserMap(User user)
         {
-            var isAdded = _ownedCells.Add(cell);
-            if (notify && isAdded)
+            if (!_userMaps.TryGetValue(user, out UserMap userMap))
             {
-                CellChanged?.Invoke(cell);
+                userMap = new UserMap(user, this);
+                _userMaps.Add(user, userMap);
+                UserMapAdded?.Invoke(userMap);
             }
-        }
-
-        public bool IsCellOwned(Vector2Int cell)
-        {
-            return _ownedCells.Contains(cell);
-        }
-
-        public bool IsNeighbourOwned(Vector2Int cell)
-        {
-            if (cell.y % 2 == 0) 
-            {
-                return _ownedCells.Contains(cell + new Vector2Int(1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, -1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, -1));
-            }
-            else
-            {
-                return _ownedCells.Contains(cell + new Vector2Int(1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, -1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(1, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(1, -1));
-            }
+            return userMap;
         }
     }
 }

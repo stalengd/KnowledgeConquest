@@ -1,4 +1,6 @@
-﻿namespace KnowledgeConquest.Server.Models
+﻿using System;
+
+namespace KnowledgeConquest.Shared.Math
 {
     public struct CubeCoords
     {
@@ -6,7 +8,7 @@
         public int R { get; set; }
         public int S { get; set; }
         public readonly bool IsValid => Q + R + S == 0;
-        public static CubeCoords Zero => new(0, 0, 0);
+        public static CubeCoords Zero => new CubeCoords(0, 0, 0);
 
         public CubeCoords(int q, int r, int s)
         {
@@ -16,21 +18,17 @@
             if (!IsValid) throw new ArgumentException("Not valid cube coordinates");
         }
 
-        public readonly Vector2Int ToOffsetCoords()
+        public readonly OffsetCoords ToOffsetCoords()
         {
-            var col = Q;
-            var row = R + (Q - (Q & 1)) / 2;
-            return new Vector2Int(col, row);
+            return HexConvert.CubeToOffset(this);
         }
 
-        public static CubeCoords FromOffsetCoords(Vector2Int v)
+        public static CubeCoords FromOffsetCoords(OffsetCoords v)
         {
-            var q = v.X;
-            var r = v.Y - (v.X - (v.X & 1)) / 2;
-            return new CubeCoords(q, r, -q - r);
+            return HexConvert.OffsetToCube(v);
         }
 
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object obj)
         {
             return obj is CubeCoords coords &&
                    Q == coords.Q &&
@@ -38,9 +36,14 @@
                    S == coords.S;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return HashCode.Combine(Q, R, S);
+        }
+
+        public override readonly string ToString()
+        {
+            return $"(Q: {Q}, R: {R}, S: {S})";
         }
 
         public static bool operator ==(CubeCoords left, CubeCoords right)
@@ -55,12 +58,12 @@
 
         public static CubeCoords operator +(CubeCoords left, CubeCoords right)
         {
-            return new(left.Q + right.Q, left.R + right.R, left.S + right.S);
+            return new CubeCoords(left.Q + right.Q, left.R + right.R, left.S + right.S);
         }
 
         public static CubeCoords operator *(CubeCoords v, int factor) 
         {
-            return new(v.Q * factor, v.R * factor, v.S * factor);
+            return new CubeCoords(v.Q * factor, v.R * factor, v.S * factor);
         }
     }
 }

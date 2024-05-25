@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using KnowledgeConquest.Shared.Math;
 using KnowledgeConquest.Server.Extensions;
 using KnowledgeConquest.Server.Models;
 
@@ -23,7 +24,17 @@ namespace KnowledgeConquest.Server.Services
             return cells;
         }
 
-        public async Task<UserMapCell?> ConquerCellAsync(User user, Vector2Int position, CancellationToken ct)
+        public async Task<Dictionary<User, List<UserMapCell>>> GetUsersCellsAsync(IEnumerable<string> users, CancellationToken ct)
+        {
+            return (await _db.UserMapCells
+                .Where(x => users.Contains(x.User.Id))
+                .Include(x => x.User)
+                .ToListAsync(ct))
+                .GroupBy(x => x.User)
+                .ToDictionary(x => x.Key, x => x.ToList());
+        }
+
+        public async Task<UserMapCell?> ConquerCellAsync(User user, OffsetCoords position, CancellationToken ct)
         {
             var cell = await FindCellAsync(_db.UserMapCells, user, position, ct);
             if (cell == null)
@@ -34,7 +45,7 @@ namespace KnowledgeConquest.Server.Services
             return cell;
         }
 
-        public async Task<UserMapCell?> GetCellWithQuestionAsync(User user, Vector2Int position, CancellationToken ct)
+        public async Task<UserMapCell?> GetCellWithQuestionAsync(User user, OffsetCoords position, CancellationToken ct)
         {
             var cell = await FindCellAsync(_db.UserMapCells
                 .Include(x => x.Question)
@@ -69,7 +80,7 @@ namespace KnowledgeConquest.Server.Services
             return cells;
         }
 
-        private static async Task<UserMapCell?> FindCellAsync(IQueryable<UserMapCell> query, User user, Vector2Int position, CancellationToken ct)
+        private static async Task<UserMapCell?> FindCellAsync(IQueryable<UserMapCell> query, User user, OffsetCoords position, CancellationToken ct)
         {
             return await query.FirstOrDefaultAsync(x => 
                 x.User == user && 

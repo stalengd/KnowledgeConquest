@@ -1,22 +1,22 @@
-﻿using KnowledgeConquest.Server.Models;
+﻿using System.Collections.Generic;
 
-namespace KnowledgeConquest.Server
+namespace KnowledgeConquest.Shared.Math
 {
     public static class HexMath
     {
-        private static readonly Vector2Int[,] _offsetCoordinatesDirectionOffsets = new Vector2Int[2,6]
+        private static readonly OffsetCoords[,] _offsetCoordinatesDirectionOffsets = new OffsetCoords[2,6]
         {
-            { new(1, 0), new(1, -1), new(0, -1), new(-1, -1), new(-1, 0), new(0, 1) },
-            { new(1, 1), new(1, 0), new(0, -1), new(-1, 0), new(-1, 1), new(0, 1) },
+            { new OffsetCoords(1, 0), new OffsetCoords(1, -1), new OffsetCoords(0, -1), new OffsetCoords(-1, -1), new OffsetCoords(-1, 0), new OffsetCoords(0, 1) },
+            { new OffsetCoords(1, 1), new OffsetCoords(1, 0), new OffsetCoords(0, -1), new OffsetCoords(-1, 0), new OffsetCoords(-1, 1), new OffsetCoords(0, 1) },
         };
         private static readonly CubeCoords[] _cubeCoordinatesDirectionOffsets = new CubeCoords[]
         {
-            new(1, 0, -1), new(1, -1, 0), new(0, -1, 1), new(-1, 0, 1), new(-1, 1, 0), new(0, 1, -1)
+            new CubeCoords(1, 0, -1), new CubeCoords(1, -1, 0), new CubeCoords(0, -1, 1), new CubeCoords(-1, 0, 1), new CubeCoords(-1, 1, 0), new CubeCoords(0, 1, -1)
         };
 
         public static CubeCoords GetCubeDirection(int direction) => _cubeCoordinatesDirectionOffsets[direction];
 
-        public static Vector2Int GetNeighbour(Vector2Int pos, int direction)
+        public static OffsetCoords GetNeighbour(OffsetCoords pos, int direction)
         {
             var parity = pos.X & 1;
             var offset = _offsetCoordinatesDirectionOffsets[parity, direction];
@@ -47,14 +47,6 @@ namespace KnowledgeConquest.Server
             for (int i = 1; i <= radius; i++)
             {
                 Ring(center, i, results);
-            }
-        }
-
-        public static IEnumerable<Vector2Int> ToOffsetCoords(this IEnumerable<CubeCoords> cube)
-        {
-            foreach (var c in cube)
-            {
-                yield return c.ToOffsetCoords();
             }
         }
     }

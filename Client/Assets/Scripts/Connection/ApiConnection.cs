@@ -43,7 +43,7 @@ namespace KnowledgeConquest.Client.Connection
                 ConnectionUtils.LogRequestError(request);
                 return default;
             }
-            return JObject.Parse(request.downloadHandler.text).ToObject<T>();
+            return JToken.Parse(request.downloadHandler.text).ToObject<T>();
         }
 
         public Task<UnityWebRequest> GetAsync(string relativePath)

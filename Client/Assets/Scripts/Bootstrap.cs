@@ -11,8 +11,7 @@ namespace KnowledgeConquest.Client
     {
         private IApiConnection _apiConnection;
         private AccountApi _accountApi;
-        private MapApi _mapApi;
-        private WorldMap _worldMap;
+        private IMapLoader _mapLoader;
         private LoginRegisterPanel _loginRegisterPanel;
         private ErrorDisplay _errorDisplay;
         private LoadingIndicator _loadingIndicator;
@@ -21,16 +20,14 @@ namespace KnowledgeConquest.Client
         public void Construct(
             IApiConnection apiConnection,
             AccountApi accountApi,
-            MapApi mapApi,
-            WorldMap worldMap,
+            IMapLoader mapLoader,
             LoginRegisterPanel loginRegisterPanel,
             ErrorDisplay errorDisplay,
             LoadingIndicator loadingIndicator)
         {
             _apiConnection = apiConnection;
             _accountApi = accountApi;
-            _mapApi = mapApi;
-            _worldMap = worldMap;
+            _mapLoader = mapLoader;
             _loginRegisterPanel = loginRegisterPanel;
             _errorDisplay = errorDisplay;
             _loadingIndicator = loadingIndicator;
@@ -55,7 +52,7 @@ namespace KnowledgeConquest.Client
             await HandleAuthenticationAsync();
             
             _loadingIndicator.Show();
-            await LoadMapAsync();
+            await _mapLoader.StartAsync();
 
             SceneManager.LoadScene("Main");
         }
@@ -95,18 +92,6 @@ namespace KnowledgeConquest.Client
             _loginRegisterPanel.Close();
 
             Debug.Log("Logged in");
-        }
-
-        private async Task LoadMapAsync()
-        {
-            var map = await _mapApi.GetMapAsync();
-            foreach (var cell in map.Cells)
-            {
-                if (cell.Type == Models.UserMapCellType.Owned)
-                {
-                    _worldMap.SetCellOwned(new(cell.PositionX, cell.PositionY));
-                }
-            }
         }
     }
 }

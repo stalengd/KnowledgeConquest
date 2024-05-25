@@ -58,7 +58,7 @@ namespace KnowledgeConquest.Client
             _questionProcess = null;
             if (isCorrect)
             {
-                _worldMap.SetCellOwned(_selectedCell);
+                _worldMap.PrimaryMap.SetCellOwned(_selectedCell);
             }
         }
     }

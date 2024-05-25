@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using KnowledgeConquest.Server.Models;
 using KnowledgeConquest.Server.Services;
 
@@ -23,25 +24,60 @@ namespace KnowledgeConquest.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<UserMapDTO> GetUserMapAsync(CancellationToken ct)
+        public async Task<ActionResult<UserMapDTO>> GetUserMapAsync(string? userId = null, CancellationToken ct = default)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var map = await _userMapService.GetUserCellsAsync(user, ct);
-            var mapDto = new UserMapDTO()
+            User user;
+            if (userId == null)
             {
-                UserId = user.Id,
-                Cells = new(),
-            };
-            foreach (var cell in map)
-            {
-                mapDto.Cells.Add(new()
-                {
-                    PositionX = cell.PositionX,
-                    PositionY = cell.PositionY,
-                    Type = cell.Type,
-                });
+                user = await _userManager.GetUserAsync(User);
             }
-            return mapDto;
+            else
+            {
+                user = await _userManager.FindByIdAsync(userId);
+            }
+            if (user == null)
+            {
+                return BadRequest("Specified user does not exists");
+            }
+            return await GetUserMapAsync(user, ct);
+        }
+
+        [HttpGet("NeighbourMaps")]
+        public async Task<List<UserMapDTO>> GetNeighbourMapsAsync(CancellationToken ct)
+        {
+            var neighbours = await _userManager.Users.Select(x => x.Id).ToListAsync(ct);
+            var currentUser = await _userManager.GetUserAsync(User);
+            neighbours.Remove(currentUser.Id);
+            var cellGroups = await _userMapService.GetUsersCellsAsync(neighbours, ct);
+            var result = new List<UserMapDTO>();
+            foreach ((var user, var cells) in cellGroups)
+            {
+                result.Add(ConvertCellsListToUserMap(user, cells));
+            }
+            return result;
+        }
+
+        [HttpGet("UserInfo")]
+        public async Task<ActionResult<UserInfoDTO>> GetUserInfoAsync(string? userId = null, CancellationToken ct = default)
+        {
+            User user;
+            if (userId == null)
+            {
+                user = await _userManager.GetUserAsync(User);
+            }
+            else
+            {
+                user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return BadRequest("Specified user does not exists");
+                }
+            }
+            return new UserInfoDTO()
+            {
+                Id = user.Id,
+                Username = user.UserName,
+            };
         }
 
         [HttpGet("CellQuestion")]
@@ -79,6 +115,31 @@ namespace KnowledgeConquest.Server.Controllers
                 return true;
             }
             return false;
+        }
+
+        private async Task<UserMapDTO> GetUserMapAsync(User user, CancellationToken ct)
+        {
+            var map = await _userMapService.GetUserCellsAsync(user, ct);
+            return ConvertCellsListToUserMap(user, map);
+        }
+
+        private static UserMapDTO ConvertCellsListToUserMap(User user, IReadOnlyList<UserMapCell> cells)
+        {
+            var mapDto = new UserMapDTO()
+            {
+                UserId = user.Id,
+                Cells = new(),
+            };
+            foreach (var cell in cells)
+            {
+                mapDto.Cells.Add(new()
+                {
+                    PositionX = cell.PositionX,
+                    PositionY = cell.PositionY,
+                    Type = cell.Type,
+                });
+            }
+            return mapDto;
         }
     }
 }

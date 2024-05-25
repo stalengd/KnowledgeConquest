@@ -2,13 +2,13 @@
 
 namespace KnowledgeConquest.Client.Models
 {
-    public sealed class UserMap
+    public sealed class UserMapDTO
     {
         public string UserId { get; set; } = null!;
-        public List<UserMapCell> Cells { get; set; } = new();
+        public List<UserMapCellDTO> Cells { get; set; } = new();
     }
 
-    public sealed class UserMapCell
+    public sealed class UserMapCellDTO
     {
         public int PositionX { get; set; } 
         public int PositionY { get; set; } 

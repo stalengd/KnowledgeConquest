@@ -3,6 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json.Linq;
 using KnowledgeConquest.Client.Utils;
 using KnowledgeConquest.Client.Models;
+using System.Collections.Generic;
 
 namespace KnowledgeConquest.Client.Connection
 {
@@ -15,9 +16,24 @@ namespace KnowledgeConquest.Client.Connection
             _apiConnection = apiConnection;
         }
 
-        public Task<UserMap> GetMapAsync()
+        public Task<UserMapDTO> GetMapAsync()
         {
-            return _apiConnection.GetAsync<UserMap>(UrlBuilder.FromRelative("Map"));
+            return _apiConnection.GetAsync<UserMapDTO>(UrlBuilder.FromRelative("Map"));
+        }
+
+        public Task<UserMapDTO> GetMapAsync(string userId)
+        {
+            return _apiConnection.GetAsync<UserMapDTO>(UrlBuilder.FromRelative("Map").Param("userId", userId));
+        }
+
+        public Task<List<UserMapDTO>> GetNeighbourMapsAsync()
+        {
+            return _apiConnection.GetAsync<List<UserMapDTO>>(UrlBuilder.FromRelative("Map/NeighbourMaps"));
+        }
+
+        public Task<UserInfoDTO> GetUserInfoAsync(string userId = null) 
+        {
+            return _apiConnection.GetAsync<UserInfoDTO>(UrlBuilder.FromRelative("Map/UserInfo").Param("userId", userId));
         }
 
         public Task<Question> GetMapCellQuestionAsync(Vector2Int cellPosition)
