@@ -75,7 +75,8 @@ namespace KnowledgeConquest.Client
                 return null;
             }
             var mouseCell = WorldToCell(ray.GetPoint(hitDistance));
-            if (_worldMap.PrimaryMap.IsCellOwned(mouseCell)) return null;
+            var cellState = _worldMap.PrimaryMap.GetCellOrDefault(mouseCell);
+            if (cellState != UserMap.CellState.Free) return null;
             if (!_worldMap.PrimaryMap.IsNeighbourOwned(mouseCell)) return null;
 
             return mouseCell;
@@ -100,7 +101,12 @@ namespace KnowledgeConquest.Client
                 var tileCoord = cWorld + _isleCoords[i];
                 var localCell = _isleCoords[i].ToOffsetCoords().AsVector2Int();
                 var worldCell = tileCoord.ToOffsetCoords().AsVector2Int();
-                if (userMap.IsCellOwned(localCell))
+                var cellState = userMap.GetCellOrDefault(localCell); 
+                if (cellState == null)
+                {
+                    continue;
+                }
+                if (cellState == UserMap.CellState.Owned)
                 {
                     SetTile(worldCell, _tilePrefabOwned);
                 }

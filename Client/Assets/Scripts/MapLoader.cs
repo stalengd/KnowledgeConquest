@@ -83,10 +83,13 @@ namespace KnowledgeConquest.Client
             var map = _worldMap.GetOrCreateUserMap(user);
             foreach (var cell in data.Cells)
             {
-                if (cell.Type == UserMapCellType.Owned)
+                var state = cell.Type switch
                 {
-                    map.SetCellOwned(new(cell.PositionX, cell.PositionY));
-                }
+                    UserMapCellType.Free => UserMap.CellState.Free,
+                    UserMapCellType.Owned => UserMap.CellState.Owned,
+                    _ => UserMap.CellState.Free,
+                };
+                map.SetCell(new(cell.PositionX, cell.PositionY), state);
             }
             return map;
         }

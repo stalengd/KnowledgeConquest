@@ -10,11 +10,14 @@ namespace KnowledgeConquest.Client
 
         public event System.Action<Vector2Int> CellChanged;
 
-        private readonly HashSet<Vector2Int> _ownedCells = new()
-        {
-            new Vector2Int(0, 0),
-        };
+        private readonly Dictionary<Vector2Int, CellState> _cells = new();
         private readonly WorldMap _worldMap;
+
+        public enum CellState
+        {
+            Free,
+            Owned,
+        }
 
         public UserMap(User owner, WorldMap worldMap)
         {
@@ -22,39 +25,59 @@ namespace KnowledgeConquest.Client
             _worldMap = worldMap;
         }
 
-        public void SetCellOwned(Vector2Int cell, bool notify = true)
+        public void SetCell(Vector2Int cell, CellState state, bool notify = true)
         {
-            var isAdded = _ownedCells.Add(cell);
-            if (notify && isAdded)
+            bool isChanged = false;
+            if (!_cells.TryGetValue(cell, out var currentState))
+            {
+                _cells.Add(cell, state);
+                isChanged = true;
+            }
+            else if (currentState != state)
+            {
+                _cells[cell] = state;
+                isChanged = true;
+            }
+            if (notify && isChanged)
             {
                 CellChanged?.Invoke(cell);
             }
         }
 
+        public bool ContainsCell(Vector2Int cell)
+        {
+            return _cells.ContainsKey(cell);
+        }
+
+        public CellState? GetCellOrDefault(Vector2Int cell)
+        {
+            return _cells.TryGetValue(cell, out var state) ? state : null;
+        }
+
         public bool IsCellOwned(Vector2Int cell)
         {
-            return _ownedCells.Contains(cell);
+            return _cells.TryGetValue(cell, out var state) && state == CellState.Owned;
         }
 
         public bool IsNeighbourOwned(Vector2Int cell)
         {
             if (cell.y % 2 == 0) 
             {
-                return _ownedCells.Contains(cell + new Vector2Int(1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, -1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, -1));
+                return IsCellOwned(cell + new Vector2Int(1, 0)) ||
+                    IsCellOwned(cell + new Vector2Int(-1, 0)) ||
+                    IsCellOwned(cell + new Vector2Int(0, 1)) ||
+                    IsCellOwned(cell + new Vector2Int(0, -1)) ||
+                    IsCellOwned(cell + new Vector2Int(-1, 1)) ||
+                    IsCellOwned(cell + new Vector2Int(-1, -1));
             }
             else
             {
-                return _ownedCells.Contains(cell + new Vector2Int(1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(-1, 0)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(0, -1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(1, 1)) ||
-                    _ownedCells.Contains(cell + new Vector2Int(1, -1));
+                return IsCellOwned(cell + new Vector2Int(1, 0)) ||
+                    IsCellOwned(cell + new Vector2Int(-1, 0)) ||
+                    IsCellOwned(cell + new Vector2Int(0, 1)) ||
+                    IsCellOwned(cell + new Vector2Int(0, -1)) ||
+                    IsCellOwned(cell + new Vector2Int(1, 1)) ||
+                    IsCellOwned(cell + new Vector2Int(1, -1));
             }
         }
     }

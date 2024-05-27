@@ -30,10 +30,7 @@ namespace KnowledgeConquest.Client.DebugTools
                 {
                     var isOwned = i < _ownedCount;
                     var cell = cells[i].ToOffsetCoords().AsVector2Int();
-                    if (isOwned)
-                    {
-                        map.SetCellOwned(cell);
-                    }
+                    map.SetCell(cell, isOwned ? UserMap.CellState.Owned : UserMap.CellState.Free);
                 }
             }
         }
