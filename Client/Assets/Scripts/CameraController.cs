@@ -1,4 +1,5 @@
 using UnityEngine;
+using KnowledgeConquest.Client.Extensions;
 
 namespace KnowledgeConquest.Client
 {
@@ -14,12 +15,21 @@ namespace KnowledgeConquest.Client
 
         [Space]
         [SerializeField] private Rect _cameraBounds;
-        [SerializeField] private float _zoomMin = 1f;
-        [SerializeField] private float _zoomMax = 5f;
+        [SerializeField] private Vector2 _boundsOffset = Vector2.zero;
+        [SerializeField] private ZoomEffect _zoomMin;
+        [SerializeField] private ZoomEffect _zoomMax;
 
         [Space]
         [SerializeField] private float _panSmoothing = 5f;
         [SerializeField] private float _zoomSmoothing = 5f;
+
+        [System.Serializable]
+        private struct ZoomEffect
+        {
+            public float angle;
+            public float fieldOfView;
+            public float height;
+        }
 
         public Camera Camera => _camera;
         public Vector2 TargetPosition => _targetPosition;
@@ -33,6 +43,7 @@ namespace KnowledgeConquest.Client
 
         private Vector2 _targetPosition;
         private float _targetZoom;
+        private float _currentZoom = 1f;
         private bool _isZooming = false;
         private float _lastZoomDistance;
         private Vector2 _lastPanScreenPosition;
@@ -40,8 +51,8 @@ namespace KnowledgeConquest.Client
 
         private void Start()
         {
-            _targetPosition = transform.position;
-            _targetZoom = _camera.orthographicSize;
+            _targetPosition = transform.position.ToXZPlane();
+            _targetZoom = _currentZoom;
         }
 
         private void Update()
@@ -63,16 +74,13 @@ namespace KnowledgeConquest.Client
 
         private void OnDrawGizmosSelected()
         {
-            Gizmos.DrawWireCube(_cameraBounds.center, _cameraBounds.size);
+            Gizmos.DrawWireCube(_cameraBounds.center, _cameraBounds.size.FromXZPlane());
         }
 
         public void MoveTo(Vector2 position)
         {
-            var zoom = _targetZoom;
-            var worldViewSize = GetWorldViewSize(zoom);
             var bounds = new Rect(_cameraBounds);
-            bounds.size -= worldViewSize;
-            bounds.center = _cameraBounds.center;
+            bounds.center = _cameraBounds.center + _boundsOffset;
             position.x = Mathf.Clamp(position.x, bounds.xMin, bounds.xMax);
             position.y = Mathf.Clamp(position.y, bounds.yMin, bounds.yMax);
             _targetPosition = position;
@@ -80,25 +88,29 @@ namespace KnowledgeConquest.Client
 
         public void Zoom(float zoom)
         {
-            _targetZoom = Mathf.Clamp(zoom, _zoomMin, _zoomMax);
-            MoveTo(_targetPosition);
-        }
-
-        public Vector2 GetWorldViewSize(float zoom)
-        {
-            return new Vector2(zoom * 2f * (Screen.width / (float)Screen.height), zoom * 2f);
+            _targetZoom = Mathf.Clamp01(zoom);
         }
 
         private void UpdatePosition()
         {
-            var pos = Vector3.Lerp(transform.position, _targetPosition, Time.deltaTime * _panSmoothing);
-            pos.z = transform.position.z;
-            transform.position = pos;
+            var pos = transform.position.ToXZPlane();
+            pos = Vector2.Lerp(pos, _targetPosition, Time.deltaTime * _panSmoothing);
+            transform.position = pos.FromXZPlane(transform.position.y);
         }
 
         private void UpdateZoom()
         {
-            _camera.orthographicSize = Mathf.Lerp(_camera.orthographicSize, _targetZoom, Time.deltaTime * _zoomSmoothing);
+            _currentZoom = Mathf.Lerp(_currentZoom, _targetZoom, Time.deltaTime * _zoomSmoothing);
+
+            var angles = transform.rotation.eulerAngles;
+            angles.x = Mathf.Lerp(_zoomMin.angle, _zoomMax.angle, _currentZoom);
+            transform.rotation = Quaternion.Euler(angles);
+
+            var pos = _camera.transform.localPosition;
+            pos.z = -Mathf.Lerp(_zoomMin.height, _zoomMax.height, _currentZoom);
+            _camera.transform.localPosition = pos;
+
+            _camera.fieldOfView = Mathf.Lerp(_zoomMin.fieldOfView, _zoomMax.fieldOfView, _currentZoom);
         }
 
         private void UpdateMouse()
@@ -180,8 +192,7 @@ namespace KnowledgeConquest.Client
 
         private Vector2 ScreenVectorToWorld2d(Vector2 screenVector)
         {
-            var normalized = screenVector / new Vector2(Screen.width, Screen.height);
-            return normalized * GetWorldViewSize(_targetZoom);
+            return screenVector / new Vector2(Screen.width, Screen.height);
         }
     }
 }

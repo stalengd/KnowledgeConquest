@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using Zenject;
 using KnowledgeConquest.Shared.Math;
 using KnowledgeConquest.Client.Extensions;
@@ -11,14 +10,12 @@ namespace KnowledgeConquest.Client
     public sealed class WorldMapRenderer : MonoBehaviour
     {
         [SerializeField] private Grid _grid;
-        [SerializeField] private Tilemap _tilemap;
-        [SerializeField] private TileBase _ownedTile;
-        [SerializeField] private TileBase _freeTile;
-        [SerializeField] private TileBase _availableTile;
-        [SerializeField] private RectInt _visibleField;
+        [SerializeField] private GameObject _tilePrefabOwned;
+        [SerializeField] private GameObject _tilePrefabAvailiable;
         [SerializeField] private int _userIsleRadius = 4;
         [SerializeField] private GameObject _userInfoOverlayPrefab;
         [SerializeField] private Vector2 _boundsExtends = Vector2.one * 2f;
+        [SerializeField] private float _randomHeightMagnitude = 0.1f;
 
         private WorldMap _worldMap;
         private CameraController _cameraController;
@@ -27,6 +24,8 @@ namespace KnowledgeConquest.Client
         private readonly Dictionary<UserMap, UserMapState> _userMaps = new();
         private readonly List<CubeCoords> _usersSpiral = new() { CubeCoords.Zero };
         private readonly List<CubeCoords> _isleCoords = new();
+        private readonly Dictionary<Vector2Int, GameObject> _tilemap = new();
+
 
         private struct UserMapState
         {
@@ -45,7 +44,6 @@ namespace KnowledgeConquest.Client
 
         private void Start()
         {
-            _tilemap.ClearAllTiles();
             HexMath.Spiral(CubeCoords.Zero, _userIsleRadius, _isleCoords);
             _worldMap.UserMapAdded += OnMapAdded;
             foreach (var map in _worldMap.UserMaps)
@@ -66,9 +64,17 @@ namespace KnowledgeConquest.Client
 
         public Vector2Int? TryClickAvailiableCell()
         {
-            if (!Input.GetMouseButtonDown(0)) return null;
-            var mouseCell = WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            if (!_visibleField.Contains(mouseCell)) return null;
+            if (!Input.GetMouseButtonDown(0)) 
+            {
+                return null;
+            }
+            var plane = new Plane(transform.up, transform.position);
+            var ray = _cameraController.Camera.ScreenPointToRay(Input.mousePosition);
+            if (!plane.Raycast(ray, out var hitDistance))
+            {
+                return null;
+            }
+            var mouseCell = WorldToCell(ray.GetPoint(hitDistance));
             if (_worldMap.PrimaryMap.IsCellOwned(mouseCell)) return null;
             if (!_worldMap.PrimaryMap.IsNeighbourOwned(mouseCell)) return null;
 
@@ -94,21 +100,27 @@ namespace KnowledgeConquest.Client
                 var tileCoord = cWorld + _isleCoords[i];
                 var localCell = _isleCoords[i].ToOffsetCoords().AsVector2Int();
                 var worldCell = tileCoord.ToOffsetCoords().AsVector2Int();
-                TileBase tile = _freeTile;
                 if (userMap.IsCellOwned(localCell))
-                    tile = _ownedTile;
-                else if (userMap.IsNeighbourOwned(localCell))
-                    tile = _availableTile;
-                _tilemap.SetTile((Vector3Int)worldCell, tile);
+                {
+                    SetTile(worldCell, _tilePrefabOwned);
+                }
+                else if (userMap.IsPrimary && userMap.IsNeighbourOwned(localCell))
+                {
+                    SetTile(worldCell, _tilePrefabAvailiable);
+                }
+                else 
+                {
+                    SetTile(worldCell, null);
+                }
                 mapBounds.Encapsulate(CellToWorld(worldCell));
             }
             mapBounds.Expand(_boundsExtends);
 
             var cameraRect = _cameraController.ViewBounds;
-            var cameraBounds = new Bounds(cameraRect.center, cameraRect.size);
+            var cameraBounds = new Bounds(cameraRect.center.FromXZPlane(), cameraRect.size.FromXZPlane());
             cameraBounds.Encapsulate(mapBounds.min);
             cameraBounds.Encapsulate(mapBounds.max);
-            _cameraController.ViewBounds = new Rect(cameraBounds.min, cameraBounds.size);
+            _cameraController.ViewBounds = new Rect(cameraBounds.min.ToXZPlane(), cameraBounds.size.ToXZPlane());
 
             if (!userMap.IsPrimary && state.Overlay == null)
             {
@@ -117,6 +129,32 @@ namespace KnowledgeConquest.Client
                     .GetComponent<UserInfoOverlay>();
                 state.Overlay.Render(userMap.Owner);
             }
+        }
+
+        private void SetTile(Vector2Int cell, GameObject prefab)
+        {
+            var cellWorldPos = CellToWorld(cell);
+            cellWorldPos.y += Mathf.PerlinNoise(cellWorldPos.x, cellWorldPos.z) * _randomHeightMagnitude;
+
+            if (!_tilemap.TryGetValue(cell, out var tile))
+            {
+                if (prefab == null)
+                {
+                    return;
+                }
+                _tilemap.Add(cell, Instantiate(prefab, cellWorldPos, Quaternion.identity, transform));
+                return;
+            }
+
+            Destroy(tile);
+            _tilemap.Remove(cell);
+
+            if (prefab == null)
+            {
+                return;
+            }
+
+            _tilemap[cell] = Instantiate(prefab, cellWorldPos, Quaternion.identity, transform);
         }
 
         private void OnMapAdded(UserMap map)
@@ -135,14 +173,14 @@ namespace KnowledgeConquest.Client
             Draw(map);
         }
 
-        private Vector2Int WorldToCell(Vector2 worldPos)
+        private Vector2Int WorldToCell(Vector3 worldPos)
         {
             return (Vector2Int)_grid.WorldToCell(worldPos);
         }
 
-        private Vector2 CellToWorld(Vector2Int cell)
+        private Vector3 CellToWorld(Vector2Int cell)
         {
-            return (Vector2)_grid.CellToWorld((Vector3Int)cell);
+            return _grid.CellToWorld(new Vector3Int(cell.x, cell.y));
         }
 
         private CubeCoords GetUserLocalCoords(int index)
