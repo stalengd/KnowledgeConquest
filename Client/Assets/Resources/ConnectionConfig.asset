@@ -12,6 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e566cbf1986f8a540ba6fe1479f24aaf, type: 3}
   m_Name: ConnectionConfig
   m_EditorClassIdentifier: 
-  _baseUrl: https://localhost:7265/
-  _username: user
-  _password: 123
+  _baseUrl: http://knowledgeconquest.local:5052
