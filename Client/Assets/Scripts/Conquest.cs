@@ -12,6 +12,7 @@ namespace KnowledgeConquest.Client
         private QuestionPanel _questionPanel;
         private QuestionsRepository _questionsRepository;
         private MapApi _mapApi;
+        private CameraController _cameraController;
 
         private QuestionProcess _questionProcess;
         private Vector2Int _selectedCell;
@@ -19,13 +20,20 @@ namespace KnowledgeConquest.Client
 
 
         [Inject]
-        public void Construct(WorldMap worldMap, WorldMapRenderer worldMapRenderer, QuestionPanel questionsPanel, QuestionsRepository questionsRepository, MapApi mapApi)
+        public void Construct(
+            WorldMap worldMap,
+            WorldMapRenderer worldMapRenderer,
+            QuestionPanel questionsPanel,
+            QuestionsRepository questionsRepository,
+            MapApi mapApi,
+            CameraController cameraController)
         {
             _worldMap = worldMap;
             _worldMapRenderer = worldMapRenderer;
             _questionPanel = questionsPanel;
             _questionsRepository = questionsRepository;
             _mapApi = mapApi;
+            _cameraController = cameraController;
         }
 
         private void Update()
@@ -59,6 +67,7 @@ namespace KnowledgeConquest.Client
 
         private async void BeginQuestionAsync(Vector2Int cell)
         {
+            EnterQuestionState();
             _selectedCell = cell;
             var question = await _questionsRepository.GetQuestionAsync(_selectedCell);
             _questionProcess = new QuestionProcess(cell, question, _mapApi);
@@ -68,11 +77,22 @@ namespace KnowledgeConquest.Client
 
         private void OnQuestionAnswered(bool isCorrect)
         {
+            ExitQuestionState();
             _questionProcess = null;
             if (isCorrect)
             {
                 _worldMap.PrimaryMap.SetCell(_selectedCell, UserMap.CellState.Owned);
             }
+        }
+
+        private void EnterQuestionState()
+        {
+            _cameraController.IsControlsEnabled = false;
+        }
+
+        private void ExitQuestionState()
+        {
+            _cameraController.IsControlsEnabled = true;
         }
     }
 }
