@@ -15,6 +15,7 @@ namespace KnowledgeConquest.Client
 
         private QuestionProcess _questionProcess;
         private Vector2Int _selectedCell;
+        private float _clickStartTime;
 
 
         [Inject]
@@ -37,10 +38,22 @@ namespace KnowledgeConquest.Client
 
         private void UpdateOnMap()
         {
-            var selectedCell = _worldMapRenderer.TryClickAvailiableCell();
-            if (selectedCell.HasValue)
+            if (Input.GetKeyDown(KeyCode.Mouse0)) 
             {
-                BeginQuestionAsync(selectedCell.Value);
+                _clickStartTime = Time.realtimeSinceStartup;
+            }
+            if (Input.GetKeyUp(KeyCode.Mouse0)) 
+            {
+                var clickDuration = Time.realtimeSinceStartup - _clickStartTime;
+                if (clickDuration > 0.25f) 
+                {
+                    return;
+                }
+                var selectedCell = _worldMapRenderer.TryGetAvailiableCell(Input.mousePosition);
+                if (selectedCell.HasValue)
+                {
+                    BeginQuestionAsync(selectedCell.Value);
+                }
             }
         }
 

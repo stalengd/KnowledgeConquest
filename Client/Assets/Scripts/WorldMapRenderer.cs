@@ -62,14 +62,10 @@ namespace KnowledgeConquest.Client
             }
         }
 
-        public Vector2Int? TryClickAvailiableCell()
+        public Vector2Int? TryGetAvailiableCell(Vector2 screenPointerPosition)
         {
-            if (!Input.GetMouseButtonDown(0)) 
-            {
-                return null;
-            }
             var plane = new Plane(transform.up, transform.position);
-            var ray = _cameraController.Camera.ScreenPointToRay(Input.mousePosition);
+            var ray = _cameraController.Camera.ScreenPointToRay(screenPointerPosition);
             if (!plane.Raycast(ray, out var hitDistance))
             {
                 return null;
