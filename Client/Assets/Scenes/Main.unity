@@ -824,8 +824,8 @@ MonoBehaviour:
   _camera: {fileID: 734094943}
   _mousePanSpeed: {x: 7, y: 7}
   _mouseZoomSpeed: 0.5
-  _touchPanSpeed: {x: 5, y: 5}
-  _touchZoomSpeed: 0.02
+  _touchPanSpeed: {x: 8, y: 8}
+  _touchZoomSpeed: 0.005
   _cameraBounds:
     serializedVersion: 2
     x: -7
