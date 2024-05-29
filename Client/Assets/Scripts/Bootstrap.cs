@@ -9,6 +9,8 @@ namespace KnowledgeConquest.Client
 {
     public sealed class Bootstrap : MonoBehaviour
     {
+        [SerializeField] private string _loginErrorMessage = "Wrong username or password"; 
+
         private IApiConnection _apiConnection;
         private AccountApi _accountApi;
         private IMapLoader _mapLoader;
@@ -84,7 +86,7 @@ namespace KnowledgeConquest.Client
                     isAuthenticated = await _accountApi.LoginAsync(credentialsInput.Username, credentialsInput.Password);
                     if (!isAuthenticated)
                     {
-                        _errorDisplay.Display("Wrong username or password");
+                        _errorDisplay.Display(_loginErrorMessage);
                     }
                 }
                 _loadingIndicator.Hide();

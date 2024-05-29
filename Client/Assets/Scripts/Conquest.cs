@@ -2,6 +2,7 @@ using UnityEngine;
 using Zenject;
 using KnowledgeConquest.Client.UI;
 using KnowledgeConquest.Client.Connection;
+using KnowledgeConquest.Client.Extensions;
 
 namespace KnowledgeConquest.Client
 {
@@ -13,6 +14,7 @@ namespace KnowledgeConquest.Client
         private QuestionsRepository _questionsRepository;
         private MapApi _mapApi;
         private CameraController _cameraController;
+        private LoadingIndicator _loadingIndicator;
 
         private QuestionProcess _questionProcess;
         private Vector2Int _selectedCell;
@@ -26,7 +28,8 @@ namespace KnowledgeConquest.Client
             QuestionPanel questionsPanel,
             QuestionsRepository questionsRepository,
             MapApi mapApi,
-            CameraController cameraController)
+            CameraController cameraController,
+            LoadingIndicator loadingIndicator)
         {
             _worldMap = worldMap;
             _worldMapRenderer = worldMapRenderer;
@@ -34,6 +37,7 @@ namespace KnowledgeConquest.Client
             _questionsRepository = questionsRepository;
             _mapApi = mapApi;
             _cameraController = cameraController;
+            _loadingIndicator = loadingIndicator;
         }
 
         private void Update()
@@ -67,9 +71,11 @@ namespace KnowledgeConquest.Client
 
         private async void BeginQuestionAsync(Vector2Int cell)
         {
-            EnterQuestionState();
             _selectedCell = cell;
+            EnterQuestionState();
+            _loadingIndicator.Show();
             var question = await _questionsRepository.GetQuestionAsync(_selectedCell);
+            _loadingIndicator.Hide();
             _questionProcess = new QuestionProcess(cell, question, _mapApi);
             _questionProcess.OnAnswered += OnQuestionAnswered;
             _questionPanel.Open(_questionProcess);
@@ -88,6 +94,7 @@ namespace KnowledgeConquest.Client
         private void EnterQuestionState()
         {
             _cameraController.IsControlsEnabled = false;
+            _cameraController.MoveTo(_worldMapRenderer.CellToWorld(_selectedCell).ToXZPlane());
         }
 
         private void ExitQuestionState()

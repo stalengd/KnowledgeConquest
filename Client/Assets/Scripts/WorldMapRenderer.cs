@@ -78,6 +78,16 @@ namespace KnowledgeConquest.Client
             return mouseCell;
         }
 
+        public Vector2Int WorldToCell(Vector3 worldPos)
+        {
+            return (Vector2Int)_grid.WorldToCell(worldPos);
+        }
+
+        public Vector3 CellToWorld(Vector2Int cell)
+        {
+            return _grid.CellToWorld(new Vector3Int(cell.x, cell.y));
+        }
+
         private void Draw(UserMap userMap)
         {
             var state = _userMaps[userMap];
@@ -173,16 +183,6 @@ namespace KnowledgeConquest.Client
         private void OnMapChanged(UserMap map)
         {
             Draw(map);
-        }
-
-        private Vector2Int WorldToCell(Vector3 worldPos)
-        {
-            return (Vector2Int)_grid.WorldToCell(worldPos);
-        }
-
-        private Vector3 CellToWorld(Vector2Int cell)
-        {
-            return _grid.CellToWorld(new Vector3Int(cell.x, cell.y));
         }
 
         private CubeCoords GetUserLocalCoords(int index)

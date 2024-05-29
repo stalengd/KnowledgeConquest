@@ -7,10 +7,22 @@ namespace KnowledgeConquest.Client.UI
 {
     public class LoginRegisterPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_InputField _usernameInput;
-        [SerializeField] private TMP_InputField _passwordInput;
-        [SerializeField] private Toggle _registerToggle;
-        [SerializeField] private Button _submitButton;
+        [SerializeField] private DualToggle _registerModeToggle;
+
+        [Header("Login Page")]
+        [SerializeField] private GameObject _loginPage;
+        [SerializeField] private TMP_InputField _loginUsernameInput;
+        [SerializeField] private TMP_InputField _loginPasswordInput;
+        [SerializeField] private Button _loginSubmitButton;
+
+        [Header("Register Page")]
+        [SerializeField] private GameObject _registerPage;
+        [SerializeField] private TMP_InputField _registerUsernameInput;
+        [SerializeField] private TMP_InputField _registerFirstnameInput;
+        [SerializeField] private TMP_InputField _registerSurnameInput;
+        [SerializeField] private TMP_InputField _registerPasswordInput;
+        [SerializeField] private TMP_InputField _registerPassword2Input;
+        [SerializeField] private Button _registerSubmitButton;
 
         private bool _autoClose = true;
         private TaskCompletionSource<Result> _taskCompletionSource;
@@ -19,12 +31,20 @@ namespace KnowledgeConquest.Client.UI
         {
             public string Username { get; set; }
             public string Password { get; set; }
+            public string Firstname { get; set; }
+            public string Surname { get; set; }
             public bool IsCreateAccount { get; set; }
         }
 
         private void Awake()
         {
-            _submitButton.onClick.AddListener(SubmitButtonPressed);
+            _loginSubmitButton.onClick.AddListener(SubmitButtonPressed);
+            _registerSubmitButton.onClick.AddListener(SubmitButtonPressed);
+            _registerModeToggle.ValueChanged += isRegister =>
+            {
+                _loginPage.SetActive(!isRegister);
+                _registerPage.SetActive(isRegister);
+            };
         }
 
         public Task<Result> Open(bool autoClose = true) 
@@ -43,12 +63,27 @@ namespace KnowledgeConquest.Client.UI
 
         private void SetResult()
         {
-            _taskCompletionSource.TrySetResult(new Result()
+            var r = new Result()
             {
-                Username = _usernameInput.text,
-                Password = _passwordInput.text,
-                IsCreateAccount = _registerToggle.isOn,
-            });
+                IsCreateAccount = _registerModeToggle.Value,
+            };
+            if (r.IsCreateAccount)
+            {
+                if (_registerPasswordInput.text != _registerPassword2Input.text)
+                {
+                    return;
+                }
+                r.Username = _registerUsernameInput.text;
+                r.Firstname = _registerFirstnameInput.text;
+                r.Surname = _registerSurnameInput.text;
+                r.Password = _registerPasswordInput.text;
+            }
+            else
+            {
+                r.Username = _loginUsernameInput.text;
+                r.Password = _loginPasswordInput.text;
+            }
+            _taskCompletionSource.TrySetResult(r);
         }
 
         private void SubmitButtonPressed()

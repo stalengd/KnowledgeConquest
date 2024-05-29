@@ -9,6 +9,7 @@ namespace KnowledgeConquest.Client.DI
         [SerializeField] private WorldMapRenderer _worldMapRenderer;
         [SerializeField] private QuestionPanel _questionPanel;
         [SerializeField] private CameraController _cameraController;
+        [SerializeField] private LoadingIndicator _loadingIndicator;
 
         public override void InstallBindings()
         {
@@ -24,6 +25,9 @@ namespace KnowledgeConquest.Client.DI
             Container
                 .Bind<CameraController>()
                 .FromInstance(_cameraController);
+            Container
+                .Bind<LoadingIndicator>()
+                .FromInstance(_loadingIndicator);
         }
     }
 }
