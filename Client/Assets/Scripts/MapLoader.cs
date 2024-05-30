@@ -63,6 +63,8 @@ namespace KnowledgeConquest.Client
             {
                 var user = _usersRepository.GetOrCreateUser(userInfo.Id);
                 user.Username = userInfo.Username;
+                user.Firstname = userInfo.Firstname;
+                user.Surname = userInfo.Surname;
             }
             _isUpdateRunning = true;
             _refreshTimer = _refreshInterval;

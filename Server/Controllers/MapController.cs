@@ -77,6 +77,8 @@ namespace KnowledgeConquest.Server.Controllers
             {
                 Id = user.Id,
                 Username = user.UserName,
+                Firstname = user.Firstname,
+                Surname = user.Surname,
             };
         }
 

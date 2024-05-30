@@ -13,12 +13,14 @@ namespace KnowledgeConquest.Client.Connection
             _apiConnection = apiConnection;
         }
 
-        public async Task<List<Validation.Error>> RegisterAsync(string username, string password)
+        public async Task<List<Validation.Error>> RegisterAsync(string username, string password, string firstname, string surname)
         {
             var data = new JObject() 
             {
                 ["username"] = username,
                 ["password"] = password,
+                ["firstname"] = firstname,
+                ["surname"] = surname,
             };
             using var request = await _apiConnection.PostJsonAsync("Account/Register", data);
             if (request.responseCode == 200)

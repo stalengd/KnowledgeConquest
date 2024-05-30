@@ -19,25 +19,15 @@ namespace KnowledgeConquest.Client.Connection
 
         public static List<Error> ParseErrors(JToken json)
         {
-            if (json is JObject obj)
+            var results = new List<Error>();
+            foreach ((var errorKey, var errorsGroup) in json["errors"] as JObject)
             {
-                return new List<Error>() { ParseError(obj) };
-            }
-            if (json is JArray array)
-            {
-                var results = new List<Error>();
-                foreach (var item in array)
+                foreach (var error in errorsGroup)
                 {
-                    results.Add(ParseError(item as JObject));
+                    results.Add(new Error(errorKey, error.Value<string>()));
                 }
-                return results;
             }
-            return null;
-        }
-
-        public static Error ParseError(JObject obj)
-        {
-            return new Error((string)obj["code"], (string)obj["description"]);
+            return results;
         }
     }
 }

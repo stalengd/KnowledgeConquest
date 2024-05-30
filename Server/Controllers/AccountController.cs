@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using KnowledgeConquest.Server.Models;
 
 namespace KnowledgeConquest.Server.Controllers
@@ -21,10 +22,21 @@ namespace KnowledgeConquest.Server.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register(AccountRegisterModel model)
         {
-            var user = new User { UserName = model.Username };
+            var user = new User
+            {
+                UserName = model.Username,
+                Firstname = model.Firstname,
+                Surname = model.Surname,
+            };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+                return ValidationProblem();
+            }
 
             await _signInManager.SignInAsync(user, false);
             return Ok();

@@ -9,7 +9,7 @@ namespace KnowledgeConquest.Client.UI
 
         public void Render(User user)
         {
-            _nameText.text = user.Username;
+            _nameText.text = $"{user.Firstname} {user.Surname}";
         }
     }
 }

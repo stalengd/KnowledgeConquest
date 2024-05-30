@@ -70,7 +70,7 @@ namespace KnowledgeConquest.Client
 
                 if (credentialsInput.IsCreateAccount)
                 {
-                    var errors = await _accountApi.RegisterAsync(credentialsInput.Username, credentialsInput.Password);
+                    var errors = await _accountApi.RegisterAsync(credentialsInput.Username, credentialsInput.Password, credentialsInput.Firstname, credentialsInput.Surname);
                     if (errors == null || errors.Count == 0)
                     {
                         isAuthenticated = true;
