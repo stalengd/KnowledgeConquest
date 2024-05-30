@@ -9,7 +9,8 @@ namespace KnowledgeConquest.Client.DebugTools
 {
     public sealed class DummyMap : MonoBehaviour
     {
-        [SerializeField] private int _ownedCount = 5;
+        [SerializeField] private int _capturedSuccessfullyCount = 5;
+        [SerializeField] private int _capturedFailyCount = 5;
         private WorldMap _worldMap;
 
         [Inject]
@@ -28,9 +29,15 @@ namespace KnowledgeConquest.Client.DebugTools
                 HexMath.Spiral(CubeCoords.Zero, 3, cells);
                 for (int i = 0; i < cells.Count; i++)
                 {
-                    var isOwned = i < _ownedCount;
                     var cell = cells[i].ToOffsetCoords().AsVector2Int();
-                    map.SetCell(cell, isOwned ? UserMap.CellState.Owned : UserMap.CellState.Free);
+                    if (i < _capturedSuccessfullyCount)
+                    {
+                        map.SetCell(cell, UserMap.CellState.CapturedSuccessfuly);
+                    }
+                    else if (i < _capturedSuccessfullyCount + _capturedFailyCount)
+                    {
+                        map.SetCell(cell, UserMap.CellState.CapturedFaily);
+                    }
                 }
             }
         }

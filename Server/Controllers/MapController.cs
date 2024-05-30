@@ -110,13 +110,10 @@ namespace KnowledgeConquest.Server.Controllers
 
             var question = cell.Question;
             var rightCount = question.CheckAnswers(response.Answers);
-            if (rightCount == question.Answers.Count(x => x.IsRight))
-            {
-                await _userMapService.ConquerCellAsync(user, response.CellPosition, ct);
-                await _db.SaveChangesAsync(ct);
-                return true;
-            }
-            return false;
+            var isSuccess = rightCount == question.Answers.Count(x => x.IsRight);
+            await _userMapService.ConquerCellAsync(user, response.CellPosition, isSuccess, ct);
+            await _db.SaveChangesAsync(ct);
+            return isSuccess;
         }
 
         private async Task<UserMapDTO> GetUserMapAsync(User user, CancellationToken ct)

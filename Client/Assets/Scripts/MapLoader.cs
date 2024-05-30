@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 using KnowledgeConquest.Client.Connection;
 using KnowledgeConquest.Client.Models;
-using System.Linq;
 
 namespace KnowledgeConquest.Client
 {
@@ -88,7 +88,8 @@ namespace KnowledgeConquest.Client
                 var state = cell.Type switch
                 {
                     UserMapCellType.Free => UserMap.CellState.Free,
-                    UserMapCellType.Owned => UserMap.CellState.Owned,
+                    UserMapCellType.CapturedSuccessfuly => UserMap.CellState.CapturedSuccessfuly,
+                    UserMapCellType.CapturedFaily => UserMap.CellState.CapturedFaily,
                     _ => UserMap.CellState.Free,
                 };
                 map.SetCell(new(cell.PositionX, cell.PositionY), state);

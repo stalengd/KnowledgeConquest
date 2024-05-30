@@ -13,10 +13,13 @@ namespace KnowledgeConquest.Client
         private readonly Dictionary<Vector2Int, CellState> _cells = new();
         private readonly WorldMap _worldMap;
 
+        [System.Flags]
         public enum CellState
         {
-            Free,
-            Owned,
+            Free = 0,
+            CapturedSuccessfuly = 1,
+            CapturedFaily = 2,
+            Captured = CapturedSuccessfuly | CapturedFaily,
         }
 
         public UserMap(User owner, WorldMap worldMap)
@@ -56,7 +59,7 @@ namespace KnowledgeConquest.Client
 
         public bool IsCellOwned(Vector2Int cell)
         {
-            return _cells.TryGetValue(cell, out var state) && state == CellState.Owned;
+            return _cells.TryGetValue(cell, out var state) && (state & CellState.Captured) > 0;
         }
 
         public bool IsNeighbourOwned(Vector2Int cell)

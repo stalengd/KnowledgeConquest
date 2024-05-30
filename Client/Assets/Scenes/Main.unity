@@ -1175,7 +1175,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _grid: {fileID: 897488035}
-  _tilePrefabOwned: {fileID: 1766645845149995026, guid: f974ed7e39fd65f4f9ad602526361558, type: 3}
+  _tilePrefabCapturedSuccessfully: {fileID: 1766645845149995026, guid: f974ed7e39fd65f4f9ad602526361558, type: 3}
+  _tilePrefabCapturedFaily: {fileID: 5384672115362593569, guid: c7f77e9f7aaa63147802b4e74fbd73e8, type: 3}
   _tilePrefabAvailiable: {fileID: 4533239971449397875, guid: 7fb5479ffb8918e4a978e058f8e4b804, type: 3}
   _userIsleRadius: 4
   _userInfoOverlayPrefab: {fileID: 7280036449909476874, guid: 2d7470862a0948c4ab4dce108db502a7, type: 3}
@@ -1564,7 +1565,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e832dab1d21e6344d8b6597f0f69c074, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ownedCount: 5
+  _capturedSuccessfullyCount: 5
+  _capturedFailyCount: 5
 --- !u!1 &1753554087
 GameObject:
   m_ObjectHideFlags: 0

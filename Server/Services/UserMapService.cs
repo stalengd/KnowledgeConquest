@@ -34,13 +34,13 @@ namespace KnowledgeConquest.Server.Services
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
-        public async Task<UserMapCell?> ConquerCellAsync(User user, OffsetCoords position, CancellationToken ct)
+        public async Task<UserMapCell?> ConquerCellAsync(User user, OffsetCoords position, bool isSuccess, CancellationToken ct)
         {
             var cell = await FindCellAsync(_db.UserMapCells, user, position, ct);
             if (cell == null)
                 return null;
 
-            cell.Type = UserMapCellType.Owned;
+            cell.Type = isSuccess ? UserMapCellType.CapturedSuccessfuly : UserMapCellType.CapturedFaily;
 
             return cell;
         }
@@ -74,7 +74,7 @@ namespace KnowledgeConquest.Server.Services
                     Question = questions[i],
                 });
             }
-            cells[0].Type = UserMapCellType.Owned; // Center is owned
+            cells[0].Type = UserMapCellType.CapturedSuccessfuly; // Center is owned
             await _db.UserMapCells.AddRangeAsync(cells, ct);
             await _db.SaveChangesAsync(ct);
             return cells;

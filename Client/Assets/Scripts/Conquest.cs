@@ -85,10 +85,8 @@ namespace KnowledgeConquest.Client
         {
             ExitQuestionState();
             _questionProcess = null;
-            if (isCorrect)
-            {
-                _worldMap.PrimaryMap.SetCell(_selectedCell, UserMap.CellState.Owned);
-            }
+            var state = isCorrect ? UserMap.CellState.CapturedSuccessfuly : UserMap.CellState.CapturedFaily;
+            _worldMap.PrimaryMap.SetCell(_selectedCell, state);
         }
 
         private void EnterQuestionState()

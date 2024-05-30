@@ -10,7 +10,8 @@ namespace KnowledgeConquest.Client
     public sealed class WorldMapRenderer : MonoBehaviour
     {
         [SerializeField] private Grid _grid;
-        [SerializeField] private GameObject _tilePrefabOwned;
+        [SerializeField] private GameObject _tilePrefabCapturedSuccessfully;
+        [SerializeField] private GameObject _tilePrefabCapturedFaily;
         [SerializeField] private GameObject _tilePrefabAvailiable;
         [SerializeField] private int _userIsleRadius = 4;
         [SerializeField] private GameObject _userInfoOverlayPrefab;
@@ -112,9 +113,13 @@ namespace KnowledgeConquest.Client
                 {
                     continue;
                 }
-                if (cellState == UserMap.CellState.Owned)
+                if (cellState == UserMap.CellState.CapturedSuccessfuly)
                 {
-                    SetTile(worldCell, _tilePrefabOwned);
+                    SetTile(worldCell, _tilePrefabCapturedSuccessfully);
+                }
+                else if (cellState == UserMap.CellState.CapturedFaily)
+                {
+                    SetTile(worldCell, _tilePrefabCapturedFaily);
                 }
                 else if (userMap.IsPrimary && userMap.IsNeighbourOwned(localCell))
                 {

@@ -3,6 +3,7 @@
     public enum UserMapCellType
     {
         Free = 0,
-        Owned = 1
+        CapturedSuccessfuly = 1,
+        CapturedFaily = 2,
     }
 }
