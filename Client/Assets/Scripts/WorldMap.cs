@@ -17,6 +17,7 @@ namespace KnowledgeConquest.Client
             if (!_userMaps.TryGetValue(user, out UserMap userMap))
             {
                 userMap = new UserMap(user, this);
+                user.Map = userMap;
                 _userMaps.Add(user, userMap);
                 UserMapAdded?.Invoke(userMap);
             }

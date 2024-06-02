@@ -15,6 +15,7 @@ namespace KnowledgeConquest.Client
         [SerializeField] private GameObject _tilePrefabAvailiable;
         [SerializeField] private int _userIsleRadius = 4;
         [SerializeField] private GameObject _userInfoOverlayPrefab;
+        [SerializeField] private UserInfoOverlay _primaryUserInfo;
         [SerializeField] private Vector2 _boundsExtends = Vector2.one * 2f;
         [SerializeField] private float _randomHeightMagnitude = 0.1f;
 
@@ -139,13 +140,20 @@ namespace KnowledgeConquest.Client
             cameraBounds.Encapsulate(mapBounds.max);
             _cameraController.ViewBounds = new Rect(cameraBounds.min.ToXZPlane(), cameraBounds.size.ToXZPlane());
 
-            if (!userMap.IsPrimary && state.Overlay == null)
+            if (state.Overlay == null)
             {
-                var overlayWorldPos = CellToWorld(cWorld.ToOffsetCoords().AsVector2Int()); 
-                state.Overlay = Instantiate(_userInfoOverlayPrefab, overlayWorldPos, Quaternion.identity)
-                    .GetComponent<UserInfoOverlay>();
-                state.Overlay.Render(userMap.Owner);
+                if (!userMap.IsPrimary)
+                {
+                    var overlayWorldPos = CellToWorld(cWorld.ToOffsetCoords().AsVector2Int());
+                    state.Overlay = Instantiate(_userInfoOverlayPrefab, overlayWorldPos, Quaternion.identity)
+                        .GetComponent<UserInfoOverlay>();
+                }
+                else
+                {
+                    state.Overlay = _primaryUserInfo;
+                }
             }
+            state.Overlay.Render(userMap.Owner);
         }
 
         private void SetTile(Vector2Int cell, GameObject prefab)

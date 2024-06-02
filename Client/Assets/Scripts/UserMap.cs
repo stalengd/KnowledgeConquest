@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace KnowledgeConquest.Client
@@ -50,6 +51,11 @@ namespace KnowledgeConquest.Client
         public bool ContainsCell(Vector2Int cell)
         {
             return _cells.ContainsKey(cell);
+        }
+
+        public int CountState(CellState state)
+        {
+            return _cells.Count(x => (x.Value & state) > 0);
         }
 
         public CellState? GetCellOrDefault(Vector2Int cell)
